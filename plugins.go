@@ -15,6 +15,7 @@ type PluginRequest struct {
 	ConsumerId string                 `json:"consumer_id,omitempty"`
 	ServiceId  string                 `json:"service_id,omitempty"`
 	RouteId    string                 `json:"route_id,omitempty"`
+	Service    Identifier             `json:"service,omitempty"`
 	Config     map[string]interface{} `json:"config,omitempty"`
 }
 
@@ -24,6 +25,7 @@ type Plugin struct {
 	ApiId      string                 `json:"api_id,omitempty"`
 	ConsumerId string                 `json:"consumer_id,omitempty"`
 	ServiceId  string                 `json:"service_id,omitempty"`
+	Service    Identifier             `json:"service,omitempty"`
 	RouteId    string                 `json:"route_id,omitempty"`
 	Config     map[string]interface{} `json:"config,omitempty"`
 	Enabled    bool                   `json:"enabled,omitempty"`
@@ -47,6 +49,9 @@ type PluginFilter struct {
 }
 
 const PluginsPath = "/plugins/"
+const ServicePluginsPath = "/services/%s/plugins/"
+const RoutePluginsPath = "/routes/%s/plugins/"
+const ConsumerPluginsPath = "/consumers/%s/plugins/"
 
 func (pluginClient *PluginClient) GetById(id string) (*Plugin, error) {
 
@@ -77,8 +82,18 @@ func (pluginClient *PluginClient) List() (*Plugins, error) {
 }
 
 func (pluginClient *PluginClient) ListFiltered(filter *PluginFilter) (*Plugins, error) {
+	var err error
+	var address string
 
-	address, err := addQueryString(pluginClient.config.HostAddress+PluginsPath, filter)
+	if len(filter.ServiceId) > 0 {
+		address, err = addQueryString(pluginClient.config.HostAddress+fmt.Sprintf(ServicePluginsPath, filter.ServiceId), filter)
+	} else if len(filter.RouteId) > 0 {
+		address, err = addQueryString(pluginClient.config.HostAddress+fmt.Sprintf(RoutePluginsPath, filter.RouteId), filter)
+	} else if len(filter.ConsumerId) > 0 {
+		address, err = addQueryString(pluginClient.config.HostAddress+fmt.Sprintf(ConsumerPluginsPath, filter.ConsumerId), filter)
+	} else {
+		address, err = addQueryString(pluginClient.config.HostAddress+PluginsPath, filter)
+	}
 
 	if err != nil {
 		return nil, fmt.Errorf("could not build query string for plugins filter, error: %v", err)

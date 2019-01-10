@@ -21,6 +21,10 @@ type ServiceRequest struct {
 	ReadTimeout    *int    `json:"read_timeout,omitempty"`
 }
 
+type Identifier struct {
+	Id *string `json:"id"`
+}
+
 type Service struct {
 	Id             *string `json:"id"`
 	CreatedAt      *int    `json:"created_at"`
